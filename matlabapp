@@ -1,0 +1,213 @@
+properties (Access = private)
+        elevatorFloor = 0
+        v_max = 3           % maximum speed
+        a_max = 1.5         % maximum acceleration
+        j_max = 1.6         % maximum jerk
+        floorHeight = 4.1
+        nsteps = 10000        % number of steps used to move the elevator
+        pauseTime
+        runSpeed = 500
+    end
+
+    methods (Access = private)
+
+        function a_out = inc_acc(app, a_in, dt, a_des)
+            if a_in + app.j_max * dt < a_des
+                a_out = a_in + app.j_max * dt;
+            elseif a_in < a_des
+                a_out = a_des;
+            else
+                a_out = a_in;
+            end
+        end
+
+        function a_out = dec_acc(app, a_in, dt, a_des)
+            if a_in - app.j_max * dt > - a_des
+                a_out = a_in - app.j_max  * dt;
+            elseif a_in > - a_des
+                a_out = - a_des;
+            else
+                a_out = a_in;
+            end
+        end
+
+        function v_out = inc_spd(~, v_in, acc, v_travel)
+            if v_in + acc < v_travel
+                v_out = v_in + acc;
+            elseif v_in < v_travel
+                v_out = v_travel;
+            else
+                v_out = v_in;
+            end
+        end
+
+        function v_out = dec_spd(~, v_in, acc, v_travel)
+            if v_in + acc > - v_travel
+                v_out = v_in + acc;
+            elseif v_in > - v_travel
+                v_out = - v_travel;
+            else
+                v_out = v_in;
+            end
+        end
+
+
+        function updateFloor(app, dist)
+            newFloor = app.elevatorFloor + dist / app.floorHeight;
+            newFloor = min(newFloor, 18);
+            newFloor = max(newFloor, 0);
+            app.elevatorFloor = newFloor;
+        end
+
+        function moveElevator(app, newFloor)
+            vm = app.v_max;
+            am = app.a_max;
+            jm = app.j_max;
+            d = app.floorHeight * abs(newFloor - app.elevatorFloor);
+            v_travel = sqrt(d * am / 2);     % maximum speed employed on this trip
+            v_travel = min(v_travel, vm);
+            aj = am / jm;
+
+            if v_travel <= am * aj % maximum speed that can be reached without maintaining maximum acceleration
+                t1 = sqrt(v_travel / jm) / 2;    % up ramp
+                t2 = 0;                          % plateau
+                t3 = t1;                         % down ramp
+                d1 = 1/6 * aj^2 * am;
+                d2 = 0;
+                d3 = 1/3 * aj^2 * am + v_travel / jm - aj^2;
+            else
+                t1 = aj;
+                t2 = (v_travel - am^2 / jm) / am;
+                t3 = t1;
+                d1 = 1/6 * aj^2 * am;
+                d2 = v_travel^2 / (2 * am) - 1/2 * v_travel * aj;
+                d3 = 1/3 * aj^2 * am + v_travel / jm - aj^2;
+            end
+
+            t_acc = t1 + t2 + t3;
+            d_acc = d1 + d2 + d3;
+            t_travel = (d - 2 * d_acc) / v_travel;
+            t = 2 * t_acc + t_travel;
+            dt = t / app.nsteps;
+            n1 = t1 / dt;
+            n2 = t2 / dt;
+            n3 = n1;
+            nt = app.nsteps - (n1 + n2 + n3);
+
+            a_plot = zeros(1, app.nsteps + 2);
+            v_plot = zeros(1, app.nsteps + 2);
+            f_plot = zeros(1, app.nsteps + 2);
+            t_plot = 0:dt:t+dt;
+            f_plot(1) = app.elevatorFloor;
+            xlim(app.floorPlot, [0 t_plot(end)]);
+            xlim(app.speedPlot, [0 t_plot(end)]);
+            xlim(app.accelPlot, [0 t_plot(end)]);
+            ylim(app.speedPlot, [0 vm]);
+            ylim(app.accelPlot, [-am*1.1 am*1.1]);
+
+            clc
+            acc = 0;
+            v = 0;
+            c = zeros(1, 6);
+            if newFloor > app.elevatorFloor
+                %% Movement Loop
+                for i = 0 : app.nsteps
+                    if i ~= app.nsteps
+                        a_plot(i + 2) = acc;
+                        v_plot(i + 2) = v;
+                        f_plot(i + 2) = app.elevatorFloor;
+                    end
+                    updateFloor(app, v * dt);
+%                     moveSlider(app);
+                    if i < n1
+                        %% 1
+                        c(1) = c(1) + 1;
+                        acc = inc_acc(app, acc, dt, am);
+                        v = inc_spd(app, v, acc * dt, v_travel);
+                    elseif i < n1 + n2
+                        %% 2
+                        c(2) = c(2) + 1;
+                        v = inc_spd(app, v, acc * dt, v_travel);
+                    elseif i < n1 + n2 + n3
+                        %% 3
+                        c(3) = c(3) + 1;
+                        acc = dec_acc(app, acc, dt, 0);
+                        v = inc_spd(app, v, acc * dt, v_travel);
+                    elseif i >= nt  && i < nt + n3
+                        %% 1'
+                        c(4) = c(4) + 1;
+                        acc = dec_acc(app, acc, dt, am);
+                        v = dec_spd(app, v, acc * dt, 0);
+                    elseif i >= nt + n3 && i < nt + n3 + n2
+                        %% 2'
+                        c(5) = c(5) + 1;
+                        v = dec_spd(app, v, acc * dt, 0);
+                    elseif i >= nt + n3 + n2 && i <= nt + n1 + n2 + n3
+                        %% 3'
+                        c(6) = c(6) + 1;
+                        acc = inc_acc(app, acc, dt, 0);
+                        v = dec_spd(app, v, acc * dt, 0);
+                    else
+
+                    end
+%                     plot(app.floorPlot, t_plot(1:i + 1), f_plot(1:i + 1));
+%                     plot(app.speedPlot, t_plot(1:i + 1), v_plot(1:i + 1));
+%                     plot(app.accelPlot, t_plot(1:i + 1), a_plot(1:i + 1));
+%                     pause(app.pauseTime);
+                end
+            else
+                for i = 1 : app.nsteps
+
+                end
+            end
+            %% Final plot
+            a_plot(i + 2) = acc;
+            v_plot(i + 2) = v;
+            f_plot(i + 2) = app.elevatorFloor;
+            plot(app.floorPlot, t_plot, f_plot);
+            plot(app.speedPlot, t_plot, v_plot);
+            plot(app.accelPlot, t_plot, a_plot);
+            moveSlider(app);
+        end
+
+        function moveSlider(app)
+            app.Slider.Value = app.elevatorFloor;
+        end
+
+    end
+
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            app.pauseTime = 1 / (app.runSpeed * app.nsteps);
+        end
+
+        % Value changed function: MaxspeedEditField
+        function MaxspeedEditFieldValueChanged(app, event)
+            app.maxSpd = app.MaxspeedEditField.Value;
+        end
+
+        % Selection changed function: ButtonGroup
+        function ButtonGroupSelectionChanged(app, event)
+            selectedButton = app.ButtonGroup.SelectedObject;
+            newFloor = str2double(get(selectedButton,'Tag'));
+            moveElevator(app, newFloor);
+        end
+
+        % Value changed function: Slider
+        function SliderValueChanged(app, event)
+            app.elevatorFloor = app.Slider.Value;
+        end
+
+        % Button pushed function: ResetButton
+        function ResetButtonPushed(app, event)
+            app.Slider.Value = 0;
+            app.elevatorFloor = 0;
+            app.ButtonGroup.SelectedObject = app.B00;
+            cla(app.floorPlot);
+            cla(app.speedPlot);
+            cla(app.accelPlot);
+        end
