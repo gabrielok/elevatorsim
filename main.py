@@ -1,5 +1,5 @@
 import random
-
+import heapq
 
 
 class building:
@@ -22,16 +22,23 @@ class elevator:
         self.acc_max = acc
         self.jerk_max = jerk
         self.cap = cap
-        self.count = 0
-        self.passengers = []
+        self.order_down = []
+        self.order_up = []
+        self.floor = 0
+        self.direction = 0  # -1 down, 0 still, 1 up
 
     def board(self, person):
         if len(self.passengers) < self.cap:
             self.passengers.append(person)
+            if person.destination > self.floor:
+                heapq.heappush(order_up, person.destination)
+            else:
+                heapq.heappush(order_down, person.destination)
             return True
         else:
             return False
 
 mybuilding = building(18)
 mybuilding.createElevator(3, 1.5, 1.6, 4)
+
 ## main loop
