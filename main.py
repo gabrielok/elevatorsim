@@ -69,14 +69,14 @@ class elevator:
             if len(order_down) == 0:    # reached final down destination
                 if len(order_up) > 0:   # if there are up destinations in queue
                     direction = 1
-                else:                   # there are no destionations in queue
+                else:                   # there are no destinations in queue
                     direction = 0
         else:
             heapq.heappop(order_up)
             if len(order_up) == 0:    # reached final up destination
                 if len(order_down) > 0:   # if there are down destinations in queue
                     direction = -1
-                else:                   # there are no destionations in queue
+                else:                   # there are no destinations in queue
                     direction = 0
 
 
