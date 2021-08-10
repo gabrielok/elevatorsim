@@ -53,13 +53,13 @@ class Elevator:
             elif len(self.order_down) > 0:
                 self.direction = Direction.DOWN
 
-    def peek(self):
+    def peek(self) -> int:
         if self.direction == 1:
             return self.order_up[0]
         elif self.direction == -1:
             return - self.order_down[0]
 
-    def board(self, person):
+    def board(self, person) -> bool:
         if self.passenger_count < self.capacity:
             self.push(person.destination)
             self.passenger_count = self.passenger_count + 1
@@ -69,7 +69,7 @@ class Elevator:
 
     def disembark(self):
         self.passenger_count = self.passenger_count - 1
-        if self.direction == -1:
+        if self.direction == Direction.DOWN:
             heapq.heappop(self.order_down)
             if len(self.order_down) == 0:  # reached final down destination
                 if len(self.order_up) > 0:  # if there are up destinations in queue
