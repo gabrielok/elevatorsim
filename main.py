@@ -1,6 +1,7 @@
 import random
 import heapq
 
+import physics
 
 class building:
     def __init__(self, floors = 18):

@@ -91,18 +91,50 @@ class physics:
 
         nt = nsteps - 2 * (n1 + n2 + n3)
 
-        a_plot = zeros(nsteps)
-        v_plot = zeros(nsteps)
-        f_plot = zeros(nsteps)
-        t_plot = linspace(0, t, nsteps, False)
-        f_plot[0] = self.elevatorFloor
+        if self.debug:
+            a_plot = zeros(nsteps)
+            v_plot = zeros(nsteps)
+            f_plot = zeros(nsteps)
+            t_plot = linspace(0, t, nsteps, False)
+            f_plot[0] = self.elevatorFloor
 
         acc = 0
         v = 0
         c = zeros(6)
-        if destination > self.elevatorFloor:
-            ## Movement Loop
-            for i in range(0, nsteps):
+        ## Movement Loop
+        for i in range(0, nsteps):
+            if destination > self.elevatorFloor:
+                if i < n1 - 1:
+                    ## 1 - increasing acc and spd
+                    c[0] = c[0] + 1
+                    acc = self.inc_acc(acc, dt, am)
+                    v = self.inc_spd(v, acc * dt, v_travel)
+                elif i <= n1 + n2:
+                    ## 2 - increasing spd
+                    c[1] = c[1] + 1
+                    v = self.inc_spd(v, acc * dt, v_travel)
+                elif i <= n1 + n2 + n3:
+                    ## 3 - increasing spd and decreasing acc
+                    c[2] = c[2] + 1
+                    acc = self.dec_acc(acc, dt, 0)
+                    v = self.inc_spd(v, acc * dt, v_travel)
+                elif i >= nsteps - n3 - n2 - n1 - 1 and i < nsteps - n2 - n1 - 1:
+                    ## 1' - decreasing acc and spd
+                    c[3] = c[3] + 1
+                    acc = self.dec_acc(acc, dt, am)
+                    v = self.dec_spd(v, acc * dt, 0)
+                elif i >= nsteps - n2 - n1 - 1 and i <= nsteps - n1:
+                    ## 2' - decreasing spd
+                    c[4] = c[4] + 1
+                    v = self.dec_spd(v, acc * dt, 0)
+                elif i > nsteps - n1 and i <= nsteps:
+                    ## 3' - increasing acc and decreasing spd
+                    c[5] = c[5] + 1
+                    acc = self.inc_acc(acc, dt, 0)
+                    v = self.dec_spd(v, acc * dt, 0)
+                else:
+                    pass # mantaining velocity
+            elif destination < self.elevatorFloor:
                 if i < n1 - 1:
                     ## 1 - increasing acc and spd
                     c[0] = c[0] + 1
@@ -134,37 +166,35 @@ class physics:
                 else:
                     pass # mantaining velocity
 
-                self.updateFloor(v * dt)
+            self.updateFloor(v * dt)
+            if self.debug:
                 a_plot[i] = acc
                 v_plot[i] = v
                 f_plot[i] = self.elevatorFloor
-        else:
-            # going down
-            pass
-
-        ## Final plot
-        plt.figure(1)
-        plt.plot(t_plot, f_plot)
-        plt.xlim(0, t_plot[-1])
-        plt.xlabel('Time')
-        plt.ylabel('Floor')
-
-        plt.figure(2)
-        plt.plot(t_plot, v_plot)
-        plt.xlim(0, t_plot[-1])
-        plt.ylim(0, vm)
-        plt.xlabel('Time')
-        plt.ylabel('Speed')
-
-        plt.figure(3)
-        plt.plot(t_plot, a_plot)
-        plt.xlim(0, t_plot[-1])
-        plt.ylim(-am*1.1, am*1.1)
-        plt.xlabel('Time')
-        plt.ylabel('Acceleration')
 
         # Debug
         if self.debug:
+            ## Final plot
+            plt.figure(1)
+            plt.plot(t_plot, f_plot)
+            plt.xlim(0, t_plot[-1])
+            plt.xlabel('Time')
+            plt.ylabel('Floor')
+
+            plt.figure(2)
+            plt.plot(t_plot, v_plot)
+            plt.xlim(0, t_plot[-1])
+            plt.ylim(0, vm)
+            plt.xlabel('Time')
+            plt.ylabel('Speed')
+
+            plt.figure(3)
+            plt.plot(t_plot, a_plot)
+            plt.xlim(0, t_plot[-1])
+            plt.ylim(-am*1.1, am*1.1)
+            plt.xlabel('Time')
+            plt.ylabel('Acceleration')
+
             print('TIMES')
             print([t1, t2, t3])
             print(c*dt)
