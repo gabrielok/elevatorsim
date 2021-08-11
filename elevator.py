@@ -40,12 +40,14 @@ class Elevator:
             except ValueError:
                 # destination is not yet in the heaps
                 heapq.heappush(self.order_up, destination)
-        else:
+        elif destination < self.floor:
             try:
-                self.order_down.index(- destination)
+                self.order_down.index(-destination)
             except ValueError:
                 # destination is not yet in the heaps
-                heapq.heappush(self.order_down, - destination)  # negative values for a max heap
+                heapq.heappush(self.order_down, -destination)  # negative values for a max heap
+        else:
+            raise ValueError("O elevador já está no andar requisitado")
 
         if self.direction == 0:
             if len(self.order_up) > 0:
@@ -54,12 +56,22 @@ class Elevator:
                 self.direction = Direction.DOWN
 
     def peek(self) -> int:
-        if self.direction == 1:
+        """
+        Returns the next stop
+        :return: floor where elevator is headed
+        """
+        if self.direction == Direction.UP:
             return self.order_up[0]
-        elif self.direction == -1:
-            return - self.order_down[0]
+        elif self.direction == Direction.DOWN:
+            return -self.order_down[0]
 
     def board(self, person) -> bool:
+        """
+        If the person can board without exceeding the elevator's passenger capacity,
+        returns True and increases the elevator's passenger count
+        :param person:
+        :return:
+        """
         if self.passenger_count < self.capacity:
             self.push(person.destination)
             self.passenger_count = self.passenger_count + 1
@@ -68,6 +80,11 @@ class Elevator:
             return False
 
     def disembark(self):
+        """
+        Decreases the passager count and updates the direction to still
+        if there are no more passengers
+        :return:
+        """
         self.passenger_count = self.passenger_count - 1
         if self.direction == Direction.DOWN:
             heapq.heappop(self.order_down)
