@@ -3,9 +3,9 @@
 # @Time:   10/08/2021
 # @Author: Gabriel O.
 
+from dataclasses import dataclass
 
+
+@dataclass
 class Person:
-    def __init__(self, floor):
-        self.floor = floor
-        self.weekday = choice(profiles_weekdays, weights)
-        self.weekend = choice(profiles_weekends, weights)
+    floor: int
