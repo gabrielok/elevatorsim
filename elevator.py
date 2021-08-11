@@ -34,6 +34,11 @@ class Elevator:
                                  init=False)
 
     def push(self, destination):
+        """
+        Push a destination into the queue
+        :param destination: floor to go to
+        :return:
+        """
         if destination > self.floor:
             try:
                 self.order_up.index(destination)
@@ -49,7 +54,7 @@ class Elevator:
         else:
             raise ValueError("O elevador já está no andar requisitado")
 
-        if self.direction == 0:
+        if self.direction == Direction.STILL:
             if len(self.order_up) > 0:
                 self.direction = Direction.UP
             elif len(self.order_down) > 0:
@@ -81,7 +86,7 @@ class Elevator:
 
     def disembark(self):
         """
-        Decreases the passager count and updates the direction to still
+        Decreases the passenger count and updates the direction to still
         if there are no more passengers
         :return:
         """
