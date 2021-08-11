@@ -9,3 +9,7 @@ from dataclasses import dataclass
 @dataclass
 class Person:
     floor: int
+
+
+class Teen(Person):
+    pass
