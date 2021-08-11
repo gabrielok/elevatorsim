@@ -6,7 +6,14 @@
 from building import Building
 from elevator import Elevator
 
-mybuilding = Building(floors=18,
-                      floorheight=4.1)
-mybuilding.elevator = Elevator()
 
+def main():
+    mybuilding = Building(floors=18,
+                          floorheight=4.1)
+    mybuilding.elevator = Elevator()
+    print(mybuilding.elevator)
+    mybuilding.populate()
+
+
+if __name__ == '__main__':
+    main()
