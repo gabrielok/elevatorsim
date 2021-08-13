@@ -3,7 +3,9 @@
 # @Time:   11/08/2021
 # @Author: Gabriel O.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from exceptions import BadProfileException
 
 
 @dataclass
@@ -19,28 +21,25 @@ class BuildingProfile:
     A profile may define:
         + which fraction of the working age groups works out of home
     """
-    teens: float
-    young_adults: float
-    adults: float
-    older_adults: float
-    retired: float
+    teens: float = field(init=False)
+    young_adults: float = field(init=False)
+    adults: float = field(init=False)
+    older_adults: float = field(init=False)
+    retired: float = field(init=False)
     employment_ratio_young_adults: float = 0.80
     employment_ratio_adults: float = 0.75
     employment_ratio_older_adults: float = 0.70
     employment_ratio_retired: float = 0.55
 
     def __post_init__(self):
-        _sum = self.teens + self.young_adults + self.adults + self.older_adults + self.elderly
-        assert (
-            _sum == 1
-        ), (
-            f"Bad profile: the percentages add up to {_sum * 100:.0f}%"
-        )
+        _sum = self.teens + self.young_adults + self.adults + self.older_adults + self.retired
+        if _sum != 1:
+            raise BadProfileException(_sum)
 
 
 class StandardProfile(BuildingProfile):
     teens = 0.15
-    young_adults = 0.2
+    young_adults = 0.3
     adults = 0.3
     older_adults = 0.2
     retired = 0.15
