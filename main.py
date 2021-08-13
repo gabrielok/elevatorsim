@@ -5,6 +5,7 @@
 
 from building import Building
 from elevator import Elevator
+from physics2 import Physics
 
 
 def main():
@@ -13,6 +14,8 @@ def main():
     mybuilding.elevator = Elevator()
     print(mybuilding.elevator)
     mybuilding.populate()
+    phys = Physics(building=mybuilding, hours=10)
+    print(phys.building.elevator)
 
 
 if __name__ == '__main__':
