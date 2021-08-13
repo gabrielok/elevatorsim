@@ -11,6 +11,10 @@ from buildingprofile import StandardProfile
 
 @dataclass
 class Building:
+    """
+    High level description of a building, which has some physical parameters (number of
+    floors, floor height, etc.) and an elevator.
+    """
     elevator: Elevator
     _elevator: Elevator = field(init=False, repr=False)
     floors: int = 18
@@ -23,8 +27,8 @@ class Building:
         return self._elevator
 
     @elevator.setter
-    def elevator(self, ele: Elevator):
-        self._elevator = ele
+    def elevator(self, e: Elevator):
+        self._elevator = e
 
     def populate(self, profile=StandardProfile):
         resident_count = self.floors * self.apartments_per_floor * self.residents_per_apartment

@@ -18,6 +18,10 @@ class Direction(Enum):
 
 @dataclass
 class Elevator:
+    """
+    High level description of an elevator, including mechanical properties, queue
+    and passager status.
+    """
     max_speed: float = 3
     max_acc: float = 1.5
     max_jerk: float = 1.6
