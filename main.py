@@ -3,9 +3,9 @@
 # @Time:   10/08/2021
 # @Author: Gabriel O.
 
-from building import Building
-from elevator import Elevator
-from physics2 import Physics
+from elevatorsim.building import Building
+from elevatorsim.elevator import Elevator
+from elevatorsim.physics2 import Physics
 
 
 def main():

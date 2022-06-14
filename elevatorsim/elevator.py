@@ -22,41 +22,32 @@ class Elevator:
     High level description of an elevator, including mechanical properties, queue
     and passager status.
     """
+
     max_speed: float = 3
-    max_acc: float = 1.5
+    max_acceleration: float = 1.5
     max_jerk: float = 1.6
     capacity: int = 4
-    passenger_count: int = field(default=0,
-                                 init=False)
-    order_up: List[int] = field(default_factory=list,
-                                init=False)
-    order_down: List[int] = field(default_factory=list,
-                                  init=False)
-    floor: int = field(default=0,
-                       init=False)
-    direction: Direction = field(default=Direction.STILL,
-                                 init=False)
+    passenger_count: int = field(default=0, init=False)
+    order_up: List[int] = field(default_factory=list, init=False)
+    order_down: List[int] = field(default_factory=list, init=False)
+    floor: int = field(default=0, init=False)
+    direction: Direction = field(default=Direction.STILL, init=False)
 
     def push(self, destination):
         """
-        Push a destination into the queue
+        Push a destination into the queue.
         :param destination: floor to go to
         :return:
         """
         if destination > self.floor:
-            try:
-                self.order_up.index(destination)
-            except ValueError:
-                # destination is not yet in the heaps
+            if destination not in self.order_up:
                 heapq.heappush(self.order_up, destination)
         elif destination < self.floor:
-            try:
-                self.order_down.index(-destination)
-            except ValueError:
-                # destination is not yet in the heaps
-                heapq.heappush(self.order_down, -destination)  # negative values for a max heap
+            if destination not in self.order_down:
+                # negative values for a max heap
+                heapq.heappush(self.order_down, -destination)
         else:
-            raise ValueError("O elevador já está no andar requisitado")
+            raise ValueError()
 
         if self.direction == Direction.STILL:
             if len(self.order_up) > 0:

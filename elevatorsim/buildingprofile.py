@@ -5,7 +5,7 @@
 
 from dataclasses import dataclass, field
 
-from exceptions import BadProfileException
+from .exceptions import BadProfileException
 
 
 @dataclass
@@ -21,6 +21,7 @@ class BuildingProfile:
     A profile may define:
         + which fraction of the working age groups works out of home
     """
+
     teens: float = field(init=False)
     young_adults: float = field(init=False)
     adults: float = field(init=False)
@@ -32,14 +33,20 @@ class BuildingProfile:
     employment_ratio_retired: float = 0.55
 
     def __post_init__(self):
-        _sum = self.teens + self.young_adults + self.adults + self.older_adults + self.retired
-        if _sum != 1:
+        _sum = (
+            self.teens
+            + self.young_adults
+            + self.adults
+            + self.older_adults
+            + self.retired
+        )
+        if abs(_sum - 1) > 1e-3:
             raise BadProfileException(_sum)
 
 
 class StandardProfile(BuildingProfile):
     teens = 0.15
-    young_adults = 0.3
+    young_adults = 0.2
     adults = 0.3
     older_adults = 0.2
     retired = 0.15
